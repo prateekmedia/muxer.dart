@@ -1,3 +1,3 @@
-## 0.0.1
+## 0.1.0 - Let there be light
 
-* TODO: Describe initial release.
+* Initial release of mp4parser for dart

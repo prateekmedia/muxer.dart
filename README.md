@@ -1,6 +1,6 @@
 # mp4parser
 
-A new flutter plugin project.
+Implementation of mp4parser library for java in flutter, Android only
 
 ## Getting Started
 
