@@ -17,7 +17,7 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await Mp4parser.platformVersion, '42');
+  test('muxAudioVideo', () async {
+    expect(await Mp4parser.muxAudioVideo(videoPath: '', audioPath: ''), 'done');
   });
 }

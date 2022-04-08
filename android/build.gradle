@@ -47,4 +47,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'org.mp4parser:isoparser:1.9.41'  
+    implementation 'org.mp4parser:muxer:1.9.41'
 }
