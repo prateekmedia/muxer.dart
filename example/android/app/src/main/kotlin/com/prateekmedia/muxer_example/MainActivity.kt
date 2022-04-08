@@ -1,4 +1,4 @@
-package com.prateekmedia.mp4parser_example
+package com.prateekmedia.muxer_example
 
 import io.flutter.embedding.android.FlutterActivity
 

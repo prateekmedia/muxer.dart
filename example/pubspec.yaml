@@ -1,5 +1,5 @@
-name: mp4parser_example
-description: Demonstrates how to use the mp4parser plugin.
+name: muxer_example
+description: Demonstrates how to use the muxer plugin.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  mp4parser:
+  muxer:
     path: ../
 
 dev_dependencies:

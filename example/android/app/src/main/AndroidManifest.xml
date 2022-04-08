@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.prateekmedia.mp4parser_example">
+    package="com.prateekmedia.muxer_example">
    <application
-        android:label="mp4parser_example"
+        android:label="muxer_example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

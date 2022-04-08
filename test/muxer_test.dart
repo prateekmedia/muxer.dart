@@ -1,9 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mp4parser/mp4parser.dart';
+import 'package:muxer/muxer.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('mp4parser');
+  const MethodChannel channel = MethodChannel('muxer');
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -17,7 +17,7 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('muxAudioVideo', () async {
-    expect(await Mp4parser.muxAudioVideo(videoPath: '', audioPath: ''), 'done');
+  test('getPlatformVersion', () async {
+    expect(await Muxer.muxAudioVideo(audioPath: '', videoPath: ''), '42');
   });
 }

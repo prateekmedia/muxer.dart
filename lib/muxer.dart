@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-class Mp4parser {
-  static const MethodChannel _channel = MethodChannel('mp4parser');
+class Muxer {
+  static const MethodChannel _channel = MethodChannel('muxer');
 
   static Future<String?> muxAudioVideo(
       {required String videoPath, required String audioPath}) async {

@@ -1,6 +1,6 @@
-# mp4parser_example
+# muxer_example
 
-Demonstrates how to use the mp4parser plugin.
+Demonstrates how to use the muxer plugin.
 
 ## Getting Started
 

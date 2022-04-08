@@ -1,6 +1,6 @@
-# mp4parser
+# muxer
 
-Implementation of mp4parser library for java in flutter, Android only
+A plugin to merge / mux audio and video together in flutter
 
 !!!---- WIP ----!!!
 
