@@ -13,6 +13,7 @@ import org.mp4parser.muxer.Movie
 import org.mp4parser.muxer.builder.DefaultMp4Builder
 import org.mp4parser.muxer.container.mp4.MovieCreator
 import java.io.File
+import java.nio.channels.FileChannel
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
@@ -38,10 +39,9 @@ class MuxerPlugin: FlutterPlugin, MethodCallHandler {
 
         muxAudioVideo(
           videoPath,
-          audioPath
+          audioPath,
+          result
         )
-
-        result.success("done")
       }
       else ->result.notImplemented()
     }
@@ -52,21 +52,26 @@ class MuxerPlugin: FlutterPlugin, MethodCallHandler {
   }
 }
 
-@JvmName("MovieCreator")
-private fun build(file: String): Movie {
-  return MovieCreator.build(file)
-}
-
 fun muxAudioVideo(
     videoFile: String,
-    audioFile: String
+    audioFile: String,
+    result: Result
 ) {
-    val movie = build(videoFile)
-    val audio = build(audioFile)
+  try {
+    val movie = MovieCreator.build(videoFile)
+    val audio = MovieCreator.build(audioFile)
 
     val audioTrack = audio.tracks.first()
     movie.addTrack(audioTrack)
 
     val outContainer = DefaultMp4Builder().build(movie)
-    outContainer.writeContainer(FileOutputStream(videoFile).channel)
+
+    var fileChannel: FileChannel = RandomAccessFile(File(videoFile), "rw").getChannel()
+    outContainer.writeContainer(fileChannel)
+    fileChannel.close();
+
+    result.success("done")
+  } catch (e: Exception) {
+      result.error("1", "Something went wrong!", "Mux failed");
+  }
 }
