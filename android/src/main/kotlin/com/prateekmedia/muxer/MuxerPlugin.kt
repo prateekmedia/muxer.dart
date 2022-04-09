@@ -59,7 +59,7 @@ fun muxAudioVideo(
 ) {
   val video: Movie
   try {
-      video = new MovieCreator().build(videoFile)
+      video = MovieCreator().build(videoFile)
   } catch (e: RuntimeException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
@@ -70,11 +70,11 @@ fun muxAudioVideo(
 
   val audio: Movie
   try {
-      audio = new MovieCreator().build(audioFile);
-  } catch (IOException e) {
+      audio = MovieCreator().build(audioFile);
+  } catch (e: IOException) {
       e.printStackTrace();
       result.error("Runtime Exception", "Runtime error", "Mux failed")
-  } catch (NullPointerException e) {
+  } catch (e: NullPointerException) {
       e.printStackTrace();
       result.error("IO Exception", "Failed while parsing file", "Mux failed")
   }
@@ -89,7 +89,7 @@ fun muxAudioVideo(
     outContainer.writeContainer(fileChannel)
     fileChannel.close();
     result.success("done")
-  } catch (e: val) {
+  } catch (e: Exception) {
     result.error("Output failed!", "Failed while muxing files", "Mux failed")
   }
 }
