@@ -58,7 +58,7 @@ fun muxAudioVideo(
     audioFile: String,
     result: Result
 ) {
-  lateinit val video: Movie
+  lateinit var video: Movie
   try {
       video = MovieCreator.build(videoFile)
   } catch (e: RuntimeException) {
@@ -69,7 +69,7 @@ fun muxAudioVideo(
       result.error("IO Exception", "Failed while parsing file", "Mux failed")
   }
 
-  lateinit val audio: Movie
+  lateinit var audio: Movie
   try {
       audio = MovieCreator.build(audioFile);
   } catch (e: IOException) {
