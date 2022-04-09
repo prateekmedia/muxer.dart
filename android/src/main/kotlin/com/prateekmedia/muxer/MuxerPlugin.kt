@@ -17,6 +17,7 @@ import java.nio.channels.FileChannel
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
+import java.io.IOException
 
 /** MuxerPlugin */
 class MuxerPlugin: FlutterPlugin, MethodCallHandler {
@@ -59,7 +60,7 @@ fun muxAudioVideo(
 ) {
   val video: Movie
   try {
-      video = MovieCreator().build(videoFile)
+      video = MovieCreator.build(videoFile)
   } catch (e: RuntimeException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
@@ -70,7 +71,7 @@ fun muxAudioVideo(
 
   val audio: Movie
   try {
-      audio = MovieCreator().build(audioFile);
+      audio = MovieCreator.build(audioFile);
   } catch (e: IOException) {
       e.printStackTrace();
       result.error("Runtime Exception", "Runtime error", "Mux failed")
