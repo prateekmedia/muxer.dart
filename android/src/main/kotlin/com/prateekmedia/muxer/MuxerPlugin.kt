@@ -66,7 +66,7 @@ fun muxAudioVideo(
       result.error("Runtime Exception", "Runtime error", "Mux failed")
   } catch (e: IOException) {
       e.printStackTrace();
-      result.error("IO Exception", "Failed while parsing file", "Mux failed")
+      result.error("IO Exception", "Failed while parsing video", "Mux failed")
   }
 
   lateinit var audio: Movie
@@ -77,7 +77,7 @@ fun muxAudioVideo(
       result.error("Runtime Exception", "Runtime error", "Mux failed")
   } catch (e: NullPointerException) {
       e.printStackTrace();
-      result.error("IO Exception", "Failed while parsing file", "Mux failed")
+      result.error("IO Exception", "Failed while parsing audio", "Mux failed")
   }
 
   val audioTrack = audio.getTracks().get(0)
