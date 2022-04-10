@@ -78,11 +78,9 @@ fun muxAudioVideo(
   } catch (e: RuntimeException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
-      return
   } catch (e: IOException) {
       e.printStackTrace()
       result.error("IO Exception", "Failed while parsing video", "Mux failed")
-      return
   }
 
   lateinit var audio: Movie
@@ -91,11 +89,9 @@ fun muxAudioVideo(
   } catch (e: IOException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
-      return
   } catch (e: NullPointerException) {
       e.printStackTrace()
       result.error("IO Exception", "Failed while parsing audio", "Mux failed")
-      return
   }
 
   val audioTrack = audio.getTracks().get(0)
@@ -105,6 +101,8 @@ fun muxAudioVideo(
 
   val finalStream = RandomAccessFile(output.absolutePath, "rw").channel
 
+  var threadException: bool = false
+
   // Make the call to write the file on a separate thread from the progress check
   val writeFileThread = Thread(
     Runnable {
@@ -112,26 +110,25 @@ fun muxAudioVideo(
         finalContainer.writeContainer(finalStream)
       } catch (e: InterruptedException) {
         result.error("Output failed!", "Muxing Interuppted", "Mux failed")
-        threadException = e
+        threadException = true
       } catch (e: IOException) {
-        result.error("Output failed!", "IOException within video mux thread", "Mux failed")
-        threadException = if (output.usableSpace == 0L) {
+        Log.e(TAG, "IOException within video mux thread")
+        if (output.usableSpace == 0L) {
           result.error("Output failed!", "No storage remaining.", "Mux failed")
         } else {
-            e
+          result.error("Output failed!", e.toString(), "Mux failed")
         }
+        threadException = true
       }
     }
   )
-  writeFileThread.setUncaughtExceptionHandler { _, e -> threadException = e }
+  writeFileThread.setUncaughtExceptionHandler { _, e -> threadException = true }
 
   val finalVideoSize = finalContainer.boxes.map { it.size }.sum()
 
   Observable.interval(200L, TimeUnit.MILLISECONDS)
     .observeOn(Schedulers.computation())
     .map {
-      threadException?.let { throw it }
-
       val currentOutputSize = if (output.exists()) output.length() else 0
       val progress = currentOutputSize / finalVideoSize.toFloat()
 
@@ -139,7 +136,7 @@ fun muxAudioVideo(
     }
     .takeUntil {
       val completionProgress = it.progress ?: 0.0f
-      completionProgress >= 1f || threadException != null
+      completionProgress >= 1f || threadException
     }
     .observeOn(Schedulers.io())
     .doOnSubscribe {
@@ -160,6 +157,7 @@ fun muxAudioVideo(
     } else {
       result.error("Output failed!", error.toString(), "Mux failed")
     }
+    threadException = true
     Observable.error<ProgressResult<File>>(mappedError)
   }
 }
