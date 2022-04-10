@@ -70,8 +70,8 @@ fun muxAudioVideo(
     audioPath: String,
     outputPath: String,
     result: Result
-) : Observable<ProgressResult<File>> {
-  return Single.fromCallable { File(outputPath).apply { createNewFile() } }
+) {
+  Single.fromCallable { File(outputPath).apply { createNewFile() } }
       .flatMapObservable { output ->
   lateinit var video: Movie
   try {
@@ -133,7 +133,7 @@ fun muxAudioVideo(
       val currentOutputSize = if (output.exists()) output.length() else 0
       val progress = currentOutputSize / finalVideoSize.toFloat()
 
-      ProgressResult(output, progress)
+      result.success(progress.toString())
     }
     .takeUntil {
       val completionProgress = it.progress ?: 0.0f
@@ -147,8 +147,6 @@ fun muxAudioVideo(
       writeFileThread.interrupt()
       finalStream.close()
     }
-
-    result.success("done")
   }
     .subscribeOn(Schedulers.io())
     .onErrorResumeNext { error: Throwable ->
@@ -161,7 +159,7 @@ fun muxAudioVideo(
     } else {
       error
     }
-    Observable.error<ProgressResult<File>>(mappedError)
+    
     result.error("Output failed!", error.toString(), "Mux failed")
   }
 }
