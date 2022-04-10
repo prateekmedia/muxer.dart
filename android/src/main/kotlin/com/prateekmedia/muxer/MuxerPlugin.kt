@@ -161,9 +161,8 @@ fun muxAudioVideo(
     } else {
       error
     }
-    threadException = true
     Observable.error<ProgressResult<File>>(mappedError)
-    result.error("Output failed!", e.toString(), "Mux failed")
+    result.error("Output failed!", error.toString(), "Mux failed")
   }
 }
 
