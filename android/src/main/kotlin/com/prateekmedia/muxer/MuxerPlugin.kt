@@ -1,6 +1,7 @@
 package com.prateekmedia.muxer
 
 import androidx.annotation.NonNull
+import android.util.Log
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -101,7 +102,7 @@ fun muxAudioVideo(
 
   val finalStream = RandomAccessFile(output.absolutePath, "rw").channel
 
-  var threadException: bool = false
+  var threadException: Boolean = false
 
   // Make the call to write the file on a separate thread from the progress check
   val writeFileThread = Thread(
@@ -112,7 +113,7 @@ fun muxAudioVideo(
         result.error("Output failed!", "Muxing Interuppted", "Mux failed")
         threadException = true
       } catch (e: IOException) {
-        Log.e(TAG, "IOException within video mux thread")
+        Log.e("muxAudioVideo", "IOException within video mux thread")
         if (output.usableSpace == 0L) {
           result.error("Output failed!", "No storage remaining.", "Mux failed")
         } else {
@@ -153,12 +154,16 @@ fun muxAudioVideo(
     .onErrorResumeNext { error: Throwable ->
     val outputFile = File(outputPath)
     val mappedError = if (outputFile.usableSpace == 0L) {
-      result.error("Output failed!", "No storage remaining.", "Mux failed")
+      OutOfStorageException(
+                        "No storage remaining to rotate video",
+                        error
+                    )
     } else {
-      result.error("Output failed!", error.toString(), "Mux failed")
+      error
     }
     threadException = true
     Observable.error<ProgressResult<File>>(mappedError)
+    result.error("Output failed!", e.toString(), "Mux failed")
   }
 }
 
