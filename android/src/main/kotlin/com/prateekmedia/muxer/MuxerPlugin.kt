@@ -18,6 +18,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.io.IOException
+import java.io.FileNotFoundException
 
 /** MuxerPlugin */
 class MuxerPlugin: FlutterPlugin, MethodCallHandler {
@@ -115,5 +116,57 @@ fun muxAudioVideo(
       e.printStackTrace()
       result.error("Output failed!", "Failed while muxing files", "Mux failed")
       return
+  }
+}
+
+private class BufferedWritableFileByteChannel private constructor(private val outputStream: OutputStream) :
+WritableByteChannel {
+  private var isOpen = true
+  private val byteBuffer: ByteBuffer
+  private val rawBuffer = ByteArray(BUFFER_CAPACITY)
+
+  init {
+      this.byteBuffer = ByteBuffer.wrap(rawBuffer)
+  }
+
+  @Throws(IOException::class)
+  override fun write(inputBuffer: ByteBuffer): Int {
+      val inputBytes = inputBuffer.remaining()
+
+      if (inputBytes > byteBuffer.remaining()) {
+          dumpToFile()
+          byteBuffer.clear()
+
+          if (inputBytes > byteBuffer.remaining()) {
+              throw BufferOverflowException()
+          }
+      }
+
+      byteBuffer.put(inputBuffer)
+
+      return inputBytes
+  }
+
+  override fun isOpen(): Boolean {
+      return isOpen
+  }
+
+  @Throws(IOException::class)
+  override fun close() {
+      dumpToFile()
+      isOpen = false
+  }
+
+  private fun dumpToFile() {
+      try {
+          outputStream.write(rawBuffer, 0, byteBuffer.position())
+      } catch (e: IOException) {
+          throw RuntimeException(e)
+      }
+
+  }
+
+  companion object {
+      private val BUFFER_CAPACITY = 1000000
   }
 }
