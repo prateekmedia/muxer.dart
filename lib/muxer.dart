@@ -10,7 +10,7 @@ class Muxer {
     required String audioPath,
     String? outputPath,
   }) async {
-    final String? version = await _channel.invokeMethod(
+    final String? result = await _channel.invokeMethod(
       'muxAudioVideo',
       {
         "videoPath": videoPath,
@@ -18,6 +18,6 @@ class Muxer {
         "outputPath": outputPath ?? videoPath,
       },
     );
-    return version;
+    return result;
   }
 }

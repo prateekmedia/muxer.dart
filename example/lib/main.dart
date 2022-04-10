@@ -30,7 +30,7 @@ class _MyAppState extends State<MyApp> {
       _result = await Muxer.muxAudioVideo(
             audioPath: audioPath!,
             videoPath: videoPath!,
-            outputPath: path.dirname(videoPath!) + '/muxed.mp4',
+            outputPath: '/storage/emulated/0/Download/muxed.mp4',
           ) ??
           'Unknown error';
     } on PlatformException {
