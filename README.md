@@ -4,6 +4,8 @@ A plugin to merge / mux audio and video together in flutter
 
 !!!---- WIP ----!!!
 
+This project is not complete, if you(the reader) knows kotlin and flutter then a help would be much appreciated.
+
 ## Getting Started
 
 This project is a starting point for a Flutter

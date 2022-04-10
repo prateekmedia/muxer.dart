@@ -1,9 +1,9 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:muxer/muxer.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   runApp(const MyApp());
@@ -30,10 +30,11 @@ class _MyAppState extends State<MyApp> {
       _result = await Muxer.muxAudioVideo(
             audioPath: audioPath!,
             videoPath: videoPath!,
+            outputPath: path.dirname(videoPath!) + '/muxed.mp4',
           ) ??
           'Unknown error';
     } on PlatformException {
-      _result = 'Failed to perform muxing.';
+      _result = 'Platform Exception!';
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -51,34 +52,40 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            shrinkWrap: true,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      var result = await FilePicker.platform
-                          .pickFiles(type: FileType.video);
-                      if (result != null) {
-                        setState(() => videoPath = result.files.first.path);
-                      }
-                    },
-                    child: const Text("Select Video File"),
-                  ),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      var result = await FilePicker.platform
-                          .pickFiles(type: FileType.audio);
-                      if (result != null) {
-                        setState(() => audioPath = result.files.first.path);
-                      }
-                    },
-                    child: const Text("Select Audio File"),
-                  ),
-                ],
+              ElevatedButton(
+                onPressed: () async {
+                  var result =
+                      await FilePicker.platform.pickFiles(type: FileType.video);
+                  if (result != null) {
+                    setState(() => videoPath = result.files.first.path);
+                  }
+                },
+                child: Text(
+                  videoPath != null
+                      ? path.basename(videoPath!)
+                      : "Select Video File",
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 5),
+              ElevatedButton(
+                onPressed: () async {
+                  var result =
+                      await FilePicker.platform.pickFiles(type: FileType.audio);
+                  if (result != null) {
+                    setState(() => audioPath = result.files.first.path);
+                  }
+                },
+                child: Text(
+                  audioPath != null
+                      ? path.basename(audioPath!)
+                      : "Select Audio File",
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 20),
               OutlinedButton(

@@ -37,10 +37,12 @@ class MuxerPlugin: FlutterPlugin, MethodCallHandler {
       "muxAudioVideo" -> {
         val videoPath = call.argument<Any>("videoPath").toString()
         val audioPath = call.argument<Any>("audioPath").toString()
+        val outputPath = call.argument<Any>("outputPath").toString()
 
         muxAudioVideo(
           videoPath,
           audioPath,
+          outputPath,
           result
         )
       }
@@ -54,29 +56,30 @@ class MuxerPlugin: FlutterPlugin, MethodCallHandler {
 }
 
 fun muxAudioVideo(
-    videoFile: String,
-    audioFile: String,
+    videoPath: String,
+    audioPath: String,
+    outputPath: String,
     result: Result
 ) {
   lateinit var video: Movie
   try {
-      video = MovieCreator.build(videoFile)
+      video = MovieCreator.build(videoPath)
   } catch (e: RuntimeException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
   } catch (e: IOException) {
-      e.printStackTrace();
+      e.printStackTrace()
       result.error("IO Exception", "Failed while parsing video", "Mux failed")
   }
 
   lateinit var audio: Movie
   try {
-      audio = MovieCreator.build(audioFile);
+      audio = MovieCreator.build(audioPath)
   } catch (e: IOException) {
-      e.printStackTrace();
+      e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
   } catch (e: NullPointerException) {
-      e.printStackTrace();
+      e.printStackTrace()
       result.error("IO Exception", "Failed while parsing audio", "Mux failed")
   }
 
@@ -86,9 +89,12 @@ fun muxAudioVideo(
   val outContainer = DefaultMp4Builder().build(video)
 
   try{
-    var fileChannel: FileChannel = RandomAccessFile(File(videoFile), "rw").getChannel()
+    val fileChannel: FileChannel = RandomAccessFile(File(outputPath), "rw").getChannel()
+    
     outContainer.writeContainer(fileChannel)
-    fileChannel.close();
+    // Above line gives error
+    fileChannel.close()
+
     result.success("done")
   } catch (e: Exception) {
     result.error("Output failed!", "Failed while muxing files", "Mux failed")
