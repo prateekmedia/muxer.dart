@@ -67,9 +67,11 @@ fun muxAudioVideo(
   } catch (e: RuntimeException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
+      return
   } catch (e: IOException) {
       e.printStackTrace()
       result.error("IO Exception", "Failed while parsing video", "Mux failed")
+      return
   }
 
   lateinit var audio: Movie
@@ -78,25 +80,40 @@ fun muxAudioVideo(
   } catch (e: IOException) {
       e.printStackTrace()
       result.error("Runtime Exception", "Runtime error", "Mux failed")
+      return
   } catch (e: NullPointerException) {
       e.printStackTrace()
       result.error("IO Exception", "Failed while parsing audio", "Mux failed")
+      return
   }
 
   val audioTrack = audio.getTracks().get(0)
   video.addTrack(audioTrack)
 
-  val outContainer = DefaultMp4Builder().build(video)
+  val out = DefaultMp4Builder().build(video)
 
-  try{
-    val fileChannel: FileChannel = RandomAccessFile(File(outputPath), "rw").getChannel()
-    
-    outContainer.writeContainer(fileChannel)
-    // Above line gives error
-    fileChannel.close()
+  lateinit var fos: FileOutputStream
 
-    result.success("done")
-  } catch (e: Exception) {
-    result.error("Output failed!", "Failed while muxing files", "Mux failed")
+  try {
+      fos = FileOutputStream(outputPath)
+  } catch (e: FileNotFoundException) {
+      e.printStackTrace()
+
+      result.error("Output failed!", "File not found", "Mux failed")
+      return
+  }
+
+  val byteBufferByteChannel = BufferedWritableFileByteChannel(fos)
+
+  try {
+      out.writeContainer(byteBufferByteChannel)
+      byteBufferByteChannel.close()
+      fos.close()
+
+      result.success("done")
+  } catch (e: IOException) {
+      e.printStackTrace()
+      result.error("Output failed!", "Failed while muxing files", "Mux failed")
+      return
   }
 }
