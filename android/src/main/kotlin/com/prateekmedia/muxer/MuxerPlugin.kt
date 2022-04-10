@@ -8,16 +8,24 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
+import io.reactivex.Flowable.interval
+import io.reactivex.Observable
+import io.reactivex.Scheduler
+import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
+
 import org.mp4parser.muxer.FileRandomAccessSourceImpl
 import org.mp4parser.muxer.Movie
 import org.mp4parser.muxer.builder.DefaultMp4Builder
 import org.mp4parser.muxer.container.mp4.MovieCreator
+
 import java.io.File
+import java.io.IOException
+import java.io.RandomAccessFile
+import java.util.concurrent.TimeUnit
 import java.nio.channels.FileChannel
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.RandomAccessFile
-import java.io.IOException
 import java.io.FileNotFoundException
 
 /** MuxerPlugin */
@@ -61,7 +69,9 @@ fun muxAudioVideo(
     audioPath: String,
     outputPath: String,
     result: Result
-) {
+) : Observable<ProgressResult<File>> {
+  return Single.fromCallable { File(outputPath).apply { createNewFile() } }
+      .flatMapObservable { output ->
   lateinit var video: Movie
   try {
       video = MovieCreator.build(videoPath)
@@ -91,82 +101,74 @@ fun muxAudioVideo(
   val audioTrack = audio.getTracks().get(0)
   video.addTrack(audioTrack)
 
-  val out = DefaultMp4Builder().build(video)
+  val finalContainer = DefaultMp4Builder().build(video)
 
-  lateinit var fos: FileOutputStream
+  val finalStream = RandomAccessFile(output.absolutePath, "rw").channel
 
-  try {
-      fos = FileOutputStream(outputPath)
-  } catch (e: FileNotFoundException) {
-      e.printStackTrace()
+  // Make the call to write the file on a separate thread from the progress check
+  val writeFileThread = Thread(
+    Runnable {
+      try {
+        finalContainer.writeContainer(finalStream)
+      } catch (e: InterruptedException) {
+        result.error("Output failed!", "Muxing Interuppted", "Mux failed")
+        threadException = e
+      } catch (e: IOException) {
+        result.error("Output failed!", "IOException within video mux thread", "Mux failed")
+        threadException = if (output.usableSpace == 0L) {
+          result.error("Output failed!", "No storage remaining.", "Mux failed")
+        } else {
+            e
+        }
+      }
+    }
+  )
+  writeFileThread.setUncaughtExceptionHandler { _, e -> threadException = e }
 
-      result.error("Output failed!", "File not found", "Mux failed")
-      return
+  val finalVideoSize = finalContainer.boxes.map { it.size }.sum()
+
+  Observable.interval(200L, TimeUnit.MILLISECONDS)
+    .observeOn(Schedulers.computation())
+    .map {
+      threadException?.let { throw it }
+
+      val currentOutputSize = if (output.exists()) output.length() else 0
+      val progress = currentOutputSize / finalVideoSize.toFloat()
+
+      ProgressResult(output, progress)
+    }
+    .takeUntil {
+      val completionProgress = it.progress ?: 0.0f
+      completionProgress >= 1f || threadException != null
+    }
+    .observeOn(Schedulers.io())
+    .doOnSubscribe {
+      writeFileThread.start()
+    }
+    .doFinally {
+      writeFileThread.interrupt()
+      finalStream.close()
+    }
+
+    result.success("done")
   }
-
-  val byteBufferByteChannel = BufferedWritableFileByteChannel(fos)
-
-  try {
-      out.writeContainer(byteBufferByteChannel)
-      byteBufferByteChannel.close()
-      fos.close()
-
-      result.success("done")
-  } catch (e: IOException) {
-      e.printStackTrace()
-      result.error("Output failed!", "Failed while muxing files", "Mux failed")
-      return
+    .subscribeOn(Schedulers.io())
+    .onErrorResumeNext { error: Throwable ->
+    val outputFile = File(outputPath)
+    val mappedError = if (outputFile.usableSpace == 0L) {
+      result.error("Output failed!", "No storage remaining.", "Mux failed")
+    } else {
+      result.error("Output failed!", error.toString(), "Mux failed")
+    }
+    Observable.error<ProgressResult<File>>(mappedError)
   }
 }
 
-private class BufferedWritableFileByteChannel private constructor(private val outputStream: OutputStream) :
-WritableByteChannel {
-  private var isOpen = true
-  private val byteBuffer: ByteBuffer
-  private val rawBuffer = ByteArray(BUFFER_CAPACITY)
+data class ProgressResult<T>(val item: T, val progress: Float?)
 
-  init {
-      this.byteBuffer = ByteBuffer.wrap(rawBuffer)
-  }
-
-  @Throws(IOException::class)
-  override fun write(inputBuffer: ByteBuffer): Int {
-      val inputBytes = inputBuffer.remaining()
-
-      if (inputBytes > byteBuffer.remaining()) {
-          dumpToFile()
-          byteBuffer.clear()
-
-          if (inputBytes > byteBuffer.remaining()) {
-              throw BufferOverflowException()
-          }
-      }
-
-      byteBuffer.put(inputBuffer)
-
-      return inputBytes
-  }
-
-  override fun isOpen(): Boolean {
-      return isOpen
-  }
-
-  @Throws(IOException::class)
-  override fun close() {
-      dumpToFile()
-      isOpen = false
-  }
-
-  private fun dumpToFile() {
-      try {
-          outputStream.write(rawBuffer, 0, byteBuffer.position())
-      } catch (e: IOException) {
-          throw RuntimeException(e)
-      }
-
-  }
-
-  companion object {
-      private val BUFFER_CAPACITY = 1000000
-  }
+class OutOfStorageException : IOException {
+    constructor() : super()
+    constructor(message: String?) : super(message)
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
+    constructor(cause: Throwable?) : super(cause)
 }
