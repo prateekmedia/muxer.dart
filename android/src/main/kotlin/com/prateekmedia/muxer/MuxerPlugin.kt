@@ -134,6 +134,7 @@ fun muxAudioVideo(
       val progress = currentOutputSize / finalVideoSize.toFloat()
 
       result.success(progress.toString())
+      ProgressResult(output, progress)
     }
     .takeUntil {
       val completionProgress = it.progress ?: 0.0f
@@ -159,7 +160,7 @@ fun muxAudioVideo(
     } else {
       error
     }
-    
+    Observable.error<ProgressResult<File>>(mappedError)
     result.error("Output failed!", error.toString(), "Mux failed")
   }
 }
