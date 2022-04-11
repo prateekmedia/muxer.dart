@@ -19,6 +19,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String? videoPath;
   String? audioPath;
+  String? outputPath;
   String? result;
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -30,7 +31,7 @@ class _MyAppState extends State<MyApp> {
       _result = await Muxer.muxAudioVideo(
             audioPath: audioPath!,
             videoPath: videoPath!,
-            outputPath: '/storage/emulated/0/Download/muxed.mp4',
+            outputPath: '${outputPath!}/muxed.mp4',
           ) ??
           'Unknown error';
     } on PlatformException {
@@ -87,13 +88,27 @@ class _MyAppState extends State<MyApp> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: () {
-                  if (videoPath != null && audioPath != null) {
-                    muxAudioVideo();
+              const SizedBox(height: 5),
+              ElevatedButton(
+                onPressed: () async {
+                  var result = await FilePicker.platform.getDirectoryPath();
+                  if (result != null) {
+                    setState(() => outputPath = result);
                   }
                 },
+                child: Text(
+                  outputPath != null
+                      ? path.dirname(outputPath!)
+                      : "Select Output Directory",
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed:
+                    videoPath != null && audioPath != null && outputPath != null
+                        ? muxAudioVideo
+                        : null,
                 child: const Text("Start Muxing"),
               ),
               const SizedBox(height: 20),
