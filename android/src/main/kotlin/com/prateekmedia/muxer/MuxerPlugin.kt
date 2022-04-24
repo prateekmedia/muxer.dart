@@ -12,7 +12,7 @@ import org.mp4parser.muxer.FileRandomAccessSourceImpl
 import org.mp4parser.muxer.Movie
 import org.mp4parser.muxer.builder.DefaultMp4Builder
 import org.mp4parser.muxer.container.mp4.MovieCreator
-import org.mp4parser.boxes.iso14496.part12.TrackBox
+import org.mp4parser.boxes.iso14496.part12.FileTypeBox
 import java.io.File
 import java.nio.channels.FileChannel
 import java.io.FileInputStream
