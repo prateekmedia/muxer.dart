@@ -66,10 +66,10 @@ fun muxAudioVideo(
       video = MovieCreator.build(videoPath)
   } catch (e: RuntimeException) {
       e.printStackTrace()
-      result.error("Runtime Exception", "Runtime error", "Mux failed")
+      result.error(1, e.toString(), null)
   } catch (e: IOException) {
       e.printStackTrace()
-      result.error("IO Exception", "Failed while parsing video", "Mux failed")
+      result.error(1, e.toString(), null)
   }
 
   lateinit var audio: Movie
@@ -77,10 +77,10 @@ fun muxAudioVideo(
       audio = MovieCreator.build(audioPath)
   } catch (e: IOException) {
       e.printStackTrace()
-      result.error("Runtime Exception", "Runtime error", "Mux failed")
+      result.error(1, e.toString(), null)
   } catch (e: NullPointerException) {
       e.printStackTrace()
-      result.error("IO Exception", "Failed while parsing audio", "Mux failed")
+      result.error(1, e.toString(), null)
   }
 
   val audioTrack = audio.getTracks().get(0)
@@ -97,6 +97,6 @@ fun muxAudioVideo(
 
     result.success("done")
   } catch (e: Exception) {
-    result.error("Output failed!", "Failed while muxing files", "Mux failed")
+    result.error(1, e.toString(), null)
   }
 }
