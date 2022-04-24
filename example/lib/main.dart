@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
           ) ??
           'Unknown error';
     } catch (error) {
-      _result = '$error':
+      _result = '$error';
     }
 
     // If the widget was removed from the tree while the asynchronous platform
