@@ -34,8 +34,8 @@ class _MyAppState extends State<MyApp> {
             outputPath: '${outputPath!}/muxed.mp4',
           ) ??
           'Unknown error';
-    } on PlatformException {
-      _result = 'Platform Exception!';
+    } catch (error) {
+      print('$error');
     }
 
     // If the widget was removed from the tree while the asynchronous platform
